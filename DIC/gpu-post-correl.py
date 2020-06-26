@@ -6,6 +6,8 @@ from time import time
 
 import crappy
 
+version = "1.0"
+
 
 def unique_name(full_name):
   """
@@ -60,10 +62,10 @@ def calc_flow_gpu(original_image,
   infos = dict()
   infos['start_time'] = str(datetime.datetime.now())
   infos['algo'] = "iDIC-GPU"
+  infos['algo_version'] = version
   infos['dir'] = os.getcwd()
   infos['host'] = os.uname()[1]
   infos_s = str(infos).encode('utf-8')
-
 
   # Opening the first image
   img0 = open_func(original_image)

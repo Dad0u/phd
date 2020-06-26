@@ -9,6 +9,7 @@ import os
 import datetime
 from time import time
 
+version = "1.0"
 
 try:
   dis_class = cv2.optflow.createOptFlow_DIS
@@ -114,6 +115,7 @@ def calc_flow(file_list,
   infos['dir'] = os.getcwd()
   infos['host'] = os.uname()[1]
   infos['algo'] = 'Disflow-rel'
+  infos['algo_version'] = version
   infos['finest_scale'] = finest_scale
   infos['gd_iterations'] = gd_iterations
   infos['patch_size'] = patch_size

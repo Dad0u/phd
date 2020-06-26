@@ -9,6 +9,8 @@ import os
 import datetime
 from time import time
 
+version = "1.0"
+
 
 try:
   dis_class = cv2.optflow.createOptFlow_DIS
@@ -83,28 +85,29 @@ def scalar_res(res):
 
 
 def calc_flow(original_image,
-    file_list,
-    out_file='optflow.hdf',
-    out_res='optflow_res.hdf',
-    complevel=0,
-    complevel_res=1,
-    use_last=True,
-    open_func=lambda s: cv2.imread(s,0),
-    # Preset medium
-    finest_scale=0,
-    gd_iterations=25,
-    patch_size=8,
-    patch_stride=3,
-    alpha=20,
-    delta=5,
-    gamma=10,
-    iterations=5):
+      file_list,
+      out_file='optflow.hdf',
+      out_res='optflow_res.hdf',
+      complevel=0,
+      complevel_res=1,
+      use_last=True,
+      open_func=lambda s: cv2.imread(s,0),
+      # Preset medium
+      finest_scale=0,
+      gd_iterations=25,
+      patch_size=8,
+      patch_stride=3,
+      alpha=20,
+      delta=5,
+      gamma=10,
+      iterations=5):
 
   infos = dict()
   infos['start_time'] = str(datetime.datetime.now())
   infos['dir'] = os.getcwd()
   infos['host'] = os.uname()[1]
   infos['algo'] = 'Disflow'
+  infos['algo_version'] = version
   infos['finest_scale'] = finest_scale
   infos['gd_iterations'] = gd_iterations
   infos['patch_size'] = patch_size
