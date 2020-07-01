@@ -31,7 +31,7 @@ for p,c in zip(paths,cuts):
   new = c is None
 
 
-def read_single(path):
+def read_single(path,interp=True):
   """
   Reads a single folder (ex: 01a_...)
 
@@ -39,7 +39,7 @@ def read_single(path):
   At every timestamp, the unknown values are interpolated.
   The result is NOT resampled (timestamps are those from both the csv files)
   """
-  print("[read_single] Called with",path)
+  #print("[read_single] Called with",path)
   lj = pd.read_csv(path+'lj.csv.gz', delimiter=',\\s+',engine='python')
   lj['t(s)'] = pd.to_timedelta(lj['t(s)'], unit='s')
   lj = lj.set_index('t(s)')
@@ -49,20 +49,23 @@ def read_single(path):
   correl['t(s)'] = pd.to_timedelta(correl['t(s)'], unit='s')
   correl = correl.set_index('t(s)')
 
-  data_high = pd.concat([lj,correl],axis=1).interpolate('time')
-  #data = data_high.resample('10ms').median()
-  return data_high
+  data = pd.concat([lj,correl],axis=1)
+  if interp:
+    data = data.interpolate('time')
+  return data
 
 
-def read_test(test,freq='10ms'):
+def read_test(test,freq=None):
   """
   Reads several protions of a test and builds a virtual "continuous" test
-  Will resample the dataframe to space evenly the timestamps
+  If freq is specified (see Pandas resample doc for the format),
+  it will resample the dataframe to space evenly the timestamps
+  Else, it is simply interpolated to fill the empty spaces
 
   Takes the folders and the timestamps where each portion of the test ends
   (except for the last one)
   """
-  print("[read] Called with",test)
+  #print("[read] Called with",test)
   # Read all the tests
   frames = [read_single(path) for path,cut in test]
   # Cut them at the proper length
@@ -73,10 +76,13 @@ def read_test(test,freq='10ms'):
   for frame,cut in zip(frames[1:],np.cumsum(cuts[:-1])):
     frame.index += pd.Timedelta(cut,'s')
   # Concatenate and resample
-  return pd.concat(frames).resample(freq).mean()
+  if freq is None:
+    return pd.concat(frames)
+  else:
+    return pd.concat(frames).resample(freq).mean()
 
 
-def read_all(tests=tests,freq='10ms'):
+def read_all(tests=tests,freq=None):
   """
   Reads all the tests in the folder
   """
