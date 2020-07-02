@@ -31,7 +31,7 @@ for p,c in zip(paths,cuts):
   new = c is None
 
 
-def read_single(path,interp=True):
+def read_single(path,interp=False):
   """
   Reads a single folder (ex: 01a_...)
 
@@ -67,7 +67,7 @@ def read_test(test,freq=None):
   """
   #print("[read] Called with",test)
   # Read all the tests
-  frames = [read_single(path) for path,cut in test]
+  frames = [read_single(path,freq is not None) for path,cut in test]
   # Cut them at the proper length
   cuts = [cut for path,cut in test]
   frames = [frame[frame.index<pd.Timedelta(cut,'s')] if cut else frame
