@@ -3,6 +3,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from glob import glob
+import os
+
+LJFILE = 'lj.csv.gz'
+CORRELFILE = 'gpucorrel.csv'
+CUTFILE = 'cut.txt'
 
 
 # If a folder contains a 'cut.txt' file, it will read the timestamp
@@ -13,25 +18,19 @@ from glob import glob
 # Each list in cuts is the end timestamp for each test
 # 1 elt shorter than the corresponding list in paths
 paths = sorted(glob("data/*/"))
-cuts = []
-for p in paths:
-  try:
-    cuts.append(float(np.loadtxt(p+'cut.txt')))
-  except OSError:
-    cuts.append(None)
 
 # Making a list of test containing the split times
 tests = []
 new = True
-for p,c in zip(paths,cuts):
+for p in paths:
   if new:
-    tests.append([(p,c)])
+    tests.append([p])
   else:
-    tests[-1].append((p,c))
-  new = c is None
+    tests[-1].append(p)
+  new = not os.path.exists(p+CUTFILE)
 
 
-def read_single(path,interp=False):
+def read_single(path):
   """
   Reads a single folder (ex: 01a_...)
 
@@ -49,13 +48,10 @@ def read_single(path,interp=False):
   correl['t(s)'] = pd.to_timedelta(correl['t(s)'], unit='s')
   correl = correl.set_index('t(s)')
 
-  data = pd.concat([lj,correl],axis=1)
-  if interp:
-    data = data.interpolate('time')
-  return data
+  return pd.concat([lj,correl],axis=1)
 
 
-def read_test(test,freq=None):
+def read_test(paths):
   """
   Reads several protions of a test and builds a virtual "continuous" test
   If freq is specified (see Pandas resample doc for the format),
@@ -65,28 +61,30 @@ def read_test(test,freq=None):
   Takes the folders and the timestamps where each portion of the test ends
   (except for the last one)
   """
-  #print("[read] Called with",test)
+  #print("[read] Called with",paths)
   # Read all the tests
-  frames = [read_single(path,freq is not None) for path,cut in test]
+  frames = [read_single(path) for path in paths]
   # Cut them at the proper length
-  cuts = [cut for path,cut in test]
+  cuts = []
+  for p in paths:
+    try:
+      cuts.append(float(np.loadtxt(p+CUTFILE)))
+    except OSError:
+      cuts.append(None)
   frames = [frame[frame.index<pd.Timedelta(cut,'s')] if cut else frame
       for frame,cut in zip(frames,cuts)]
   # Offset the timestamps accordingly
   for frame,cut in zip(frames[1:],np.cumsum(cuts[:-1])):
     frame.index += pd.Timedelta(cut,'s')
   # Concatenate and resample
-  if freq is None:
-    return pd.concat(frames)
-  else:
-    return pd.concat(frames).resample(freq).mean()
+  return pd.concat(frames)
 
 
-def read_all(tests=tests,freq=None):
+def read_all(tests=tests):
   """
   Reads all the tests in the folder
   """
-  return [read_test(t,freq) for t in tests]
+  return [read_test(t) for t in tests]
 
 
 if __name__ == '__main__':
