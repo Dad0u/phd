@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from scipy.io import wavfile
+from mystuff.cachedfunc import cachedfunc
 
 WAVFILE = 'audio_denoised.wav'
 OFFSETFILE = 'offset_audio.txt'
@@ -8,6 +9,7 @@ CUTFILE = 'cut.txt'
 SAMPLERATE = 192000 # kHz, samplerate of the wav file
 
 
+@cachedfunc('audio.p')
 def read_audio(paths, freq='10ms', samplerate=SAMPLERATE):
   """
   To compute a "noise level" from the mic during the test

@@ -28,6 +28,8 @@ for p in paths:
   else:
     tests[-1].append(p)
   new = not os.path.exists(p+CUTFILE)
+# Make tests hashable (for cachedfunc)
+tests = [tuple(l) for l in tests]
 
 
 def read_single(path):
