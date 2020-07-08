@@ -3,6 +3,7 @@ import numpy as np
 import tables
 import os
 import cv2
+from phd.fields import get_fields,OrthoProjector
 from mystuff.cachedfunc import cachedfunc
 
 CORRELFILES = ['post/disflow-face/optflow_rel.hdf',
@@ -14,13 +15,14 @@ MASKFILE = 'mask.tif'
 RMFIELDS = ['x','y','r','exx','eyy','exy']
 
 
-@cachedfunc('localstrain.p')
+@cachedfunc('localdisp.p')
 def read_localstrain(paths):
   """
   To compute a damage evolution based on the occurence of local strain
 
   The file read is the displacement between two successive images
-  The strain is computed, squared and summed within the mask
+  Rigid body motion and first order strain are removed
+  the residual is squared, summed and returned
   """
   total_offset = 0
   frames = []
@@ -42,20 +44,22 @@ def read_localstrain(paths):
       margin = .2 # 20% margin on the default mask
       mask = np.zeros((h,w))
       mask[int(margin*h):int((1-margin)*h),int(margin*w):int((1-margin)*w)] = 1
+    mask2 = np.stack([mask]*2,axis=2)
+    base = get_fields(RMFIELDS,h,w)
+    for i in range(len(RMFIELDS)):
+      base[:,:,:,i] *= mask2
+    proj = OrthoProjector(base)
     r = []
     for field,name in zip(table,names):
-      print("Processing",name[1])
+      print(name[1])
       t = float(b'.'.join(name[1].split(b'_')[-1].split(b'.')[:-1]))
       if t >= cut:
         break
-      exx = mask*np.gradient(field[:,:,0],axis=1)
-      eyy = mask*np.gradient(field[:,:,1],axis=0)
-      exy = mask*np.gradient(field[:,:,0],axis=0)
-      eyx = mask*np.gradient(field[:,:,1],axis=1)
-      f = np.sum(exx**2+eyy**2+exy**2+eyx**2)
+      f = np.sum((field*mask2-proj.get_full(field))**2)
       r.append((t+total_offset,f))
+      print("DEBUG",r[-1])
     total_offset += min(cut,t)
-    data = pd.DataFrame(r,columns=['t(s)','lstrain'])
+    data = pd.DataFrame(r,columns=['t(s)','correl_dmg'])
     data['t(s)'] = pd.to_timedelta(data['t(s)'],unit='s')
     frames.append(data.set_index('t(s)'))
   return pd.concat(frames)
