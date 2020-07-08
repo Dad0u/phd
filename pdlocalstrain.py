@@ -13,6 +13,9 @@ MASKFILE = 'mask.tif'
 
 RMFIELDS = ['x','y','r','exx','eyy','exy']
 
+def get_time(s):
+  return float(b'.'.join(s.split(b'_')[-1].split(b'.')[:-1]))
+
 
 @cachedfunc('localstrain.p')
 def read_localstrain(paths):
@@ -43,9 +46,14 @@ def read_localstrain(paths):
       mask = np.zeros((h,w))
       mask[int(margin*h):int((1-margin)*h),int(margin*w):int((1-margin)*w)] = 1
     r = []
+    last_t = get_time(names[0][0])
     for field,name in zip(table,names):
       print("Processing",name[1])
-      t = float(b'.'.join(name[1].split(b'_')[-1].split(b'.')[:-1]))
+      new_t = get_time(name[1])
+      # The events occured somwhere between last_t and new_t
+      # Let's take the average
+      t = (new_t+last_t)/2
+      last_t = new_t
       if t >= cut:
         break
       exx = mask*np.gradient(field[:,:,0],axis=1)
@@ -55,7 +63,7 @@ def read_localstrain(paths):
       f = np.sum(exx**2+eyy**2+exy**2+eyx**2)
       r.append((t+total_offset,f))
     total_offset += min(cut,t)
-    data = pd.DataFrame(r,columns=['t(s)','lstrain'])
+    data = pd.DataFrame(r,columns=['t(s)','localstrain'])
     data['t(s)'] = pd.to_timedelta(data['t(s)'],unit='s')
     frames.append(data.set_index('t(s)'))
   return pd.concat(frames)
