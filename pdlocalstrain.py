@@ -13,6 +13,7 @@ MASKFILE = 'mask.tif'
 
 RMFIELDS = ['x','y','r','exx','eyy','exy']
 
+
 def get_time(s):
   return float(b'.'.join(s.split(b'_')[-1].split(b'.')[:-1]))
 
@@ -50,7 +51,7 @@ def read_localstrain(paths):
     for field,name in zip(table,names):
       print("Processing",name[1])
       new_t = get_time(name[1])
-      # The events occured somwhere between last_t and new_t
+      # The events occured somewhere between last_t and new_t
       # Let's take the average
       t = (new_t+last_t)/2
       last_t = new_t
