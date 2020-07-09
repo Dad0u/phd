@@ -26,15 +26,21 @@ lstrain = [pdlocalstrain.read_localstrain(test) for test in pdread.tests]
 
 lthermo = [pdlocalthermo.read_localthermo(test) for test in pdread.tests]
 
-for t,a,ls,lt in zip(tests,audios,lstrain,lthermo):
-  data = pd.concat([t,a,ls,lt]).interpolate('time').resample('10ms').mean()
-  t = np.array(data.index,float)/1e9
-  plt.plot(t,data['exx(%)'],label='$\\epsilon_{xx}$(%)')
-  audiodmg = data['audio_lvl'] > thresh['audio']
-  plt.plot(t[audiodmg],data['exx(%)'][audiodmg],'o',label='audio')
-  lstraindmg = data['localstrain'] > thresh['localstrain']
-  plt.plot(t[lstraindmg],data['exx(%)'][lstraindmg]+.01,'o',label='correl')
-  lthermodmg = data['localthermo'] > thresh['localthermo']
-  plt.plot(t[lthermodmg],data['exx(%)'][lthermodmg]+.02,'o',label='thermo')
+
+def tplot(data,**kwargs):
+  t = np.array(data.index,dtype=float)/1e9
+  plt.plot(t,data,**kwargs)
+
+
+for test,a,ls,lt in zip(tests,audios,lstrain,lthermo):
+  data = pd.concat([test,a,ls,lt]).sort_index()
+  tplot(data['exx(%)'].dropna(),label='$\\epsilon_{xx}$(%)')
+  data['exx(%)'].interpolate('time',inplace=True)
+  tplot(data[data['audio_lvl'] > thresh['audio']]['exx(%)'],
+      marker='o',linestyle='',label='Audio')
+  tplot(data[data['localstrain'] > thresh['localstrain']]['exx(%)']+.01,
+      marker='o',linestyle='',label='Correl')
+  tplot(data[data['localthermo'] > thresh['localthermo']]['exx(%)']+.02,
+      marker='o',linestyle='',label='Thermo')
   plt.legend()
 plt.show()
