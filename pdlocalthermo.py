@@ -46,7 +46,7 @@ def read_localthermo(paths):
     h,w = last.shape
     try:
       mask = cv2.imread(path+MASKFILE,0).astype(float)/255
-    except (OSError,AttributeError):
+    except AttributeError:
       print("[read_localthermo] Warning, mask not found! Using default")
       margin = .2 # 20% margin on the default mask
       mask = np.zeros((h,w))

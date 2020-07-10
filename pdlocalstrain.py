@@ -41,7 +41,7 @@ def read_localstrain(paths):
     n,h,w,_ = table.shape
     try:
       mask = cv2.imread(path+MASKFILE,0).astype(float)/255
-    except OSError:
+    except AttributeError:
       print("[read_localstrain] Warning, mask not found! Using default")
       margin = .2 # 20% margin on the default mask
       mask = np.zeros((h,w))
