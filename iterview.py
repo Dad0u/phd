@@ -65,8 +65,15 @@ class Displayer(object):
 
     self.key_label.configure(text=str(key))
     self.scale_label.configure(text="[%f, %f]"%(lo,hi))
-    plt.clf()
-    plt.imshow(img,clim=(lo,hi),cmap=self.cmap)
+    if not hasattr(self,'im'):
+      self.im = plt.imshow(img,clim=(lo,hi),cmap=self.cmap)
+      plt.draw()
+      plt.pause(.001)
+    #plt.clf()
+    #plt.imshow(img,clim=(lo,hi),cmap=self.cmap)
+    self.im.set_data(img)
+    self.im.set_clim(lo,hi)
+    plt.draw()
     plt.pause(.001)
 
   def interactive(self):
