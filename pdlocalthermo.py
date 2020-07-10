@@ -56,14 +56,15 @@ def read_localthermo(paths):
       irthresh = int(np.loadtxt(IRTHRESH))
     except OSError:
       print(f"[warning] {IRTHRESH} not found, using default value")
-      irthresh = 50
+      irthresh = 30
     r = []
     for imgname in imglist[1:]:
       t = tg.get(imgname)
       if t>= cut:
         break
       img = cv2.imread(imgname,cv2.IMREAD_ANYDEPTH).astype(float)
-      diff = img-last
+      diff = img - last
+      last = img
       #r.append((t,np.sum(mask*diff**2)))
       mdiff = mask*(diff-diff[np.where(mask)].mean())
       r.append((t+total_offset,np.count_nonzero(mdiff>irthresh)))
