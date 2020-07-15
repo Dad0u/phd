@@ -57,11 +57,11 @@ def read_localstrain(paths):
       last_t = new_t
       if t >= cut:
         break
-      exx = mask*np.gradient(field[:,:,0],axis=1)
-      eyy = mask*np.gradient(field[:,:,1],axis=0)
-      exy = mask*np.gradient(field[:,:,0],axis=0)
-      eyx = mask*np.gradient(field[:,:,1],axis=1)
-      f = np.sum(exx**2+eyy**2+exy**2+eyx**2)
+      f = 0
+      f += np.sum(mask*np.gradient(field[:,:,0],axis=1)**2) # exx
+      f += np.sum(mask*np.gradient(field[:,:,1],axis=1)**2) # exy
+      f += np.sum(mask*np.gradient(field[:,:,0],axis=0)**2) # eyy
+      f += np.sum(mask*np.gradient(field[:,:,1],axis=0)**2) # eyx
       r.append((t+total_offset,f))
     total_offset += min(cut,t)
     data = pd.DataFrame(r,columns=['t(s)','localstrain'])
