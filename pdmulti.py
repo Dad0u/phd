@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from phd import pdread,pdaudio,pdlocalstrain,pdlocalthermo
 
 THRESH_FILE = 'thresh.txt'
-default_thresh = {'audio':50,'localstrain':40,'localthermo':30}
+default_thresh = {'audio':50,'localstrain':40,'localthermo':30,'fdmg':25}
 
 try:
   with open(THRESH_FILE,'r') as f:
@@ -33,9 +33,14 @@ def tplot(data,**kwargs):
 
 
 for test,a,ls,lt in zip(tests,audios,lstrain,lthermo):
-  data = pd.concat([test,a,ls,lt]).sort_index()
+  fsmooth = test['F(N)'].resample('20ms').mean()
+  fdmg = (fsmooth.rolling(10).mean().diff()-fsmooth.diff()).abs()
+  data = pd.concat([test,a,ls,lt,fdmg.to_frame(name='fdmg')]).sort_index()
   tplot(data['exx(%)'].dropna(),label='$\\epsilon_{xx}$(%)')
   data['exx(%)'].interpolate('time',inplace=True)
+
+  tplot(data[data['fdmg'] > thresh['fdmg']]['exx(%)']-.01,
+      marker='o',linestyle='',label='Fdmg')
   tplot(data[data['audio_lvl'] > thresh['audio']]['exx(%)'],
       marker='o',linestyle='',label='Audio')
   tplot(data[data['localstrain'] > thresh['localstrain']]['exx(%)']+.01,
