@@ -2,7 +2,8 @@ import numpy as np
 
 
 def smooth(a,n=100):
-  return np.mean(a[:(len(a)//n)*n].reshape(len(a)//n,n),axis=1)
+  l,*m = a.shape
+  return np.mean(a[:(l//n)*n].reshape(l//n,n,*m),axis=1)
 
 
 if __name__ == "__main__":
