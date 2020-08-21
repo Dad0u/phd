@@ -3,8 +3,10 @@
 # Dimension is (h,w,2),
 # the third axis contain the displacement along respectively x and y
 
-from __future__ import division
 import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+from matplotlib.colors import hsv_to_rgb
 
 
 def ones(h,w):
@@ -213,7 +215,7 @@ class OrthoProjector(Projector):
   """
   Like Projector, but the base is orthogonalized at first
   It allows the projection to happen on a non-orthogonal base
-  /!\ Unicity of the result is not guaranteed
+  Warning : Unicity of the result is not guaranteed
   """
   def __init__(self,base):
     vec = [base[:,:,:,i] for i in range(base.shape[3])]
@@ -229,3 +231,68 @@ def avg_ampl(f):
   Returns the average amplitude of a field
   """
   return (np.sum(f[:,:,0]**2+f[:,:,1]**2)/f.size*2)**.5
+
+
+def remap(a,r,interp=cv2.INTER_CUBIC):
+  """
+  Remaps a using given r the displacement as a result from correlation
+  """
+  imy,imx = a.shape
+  x,y = np.meshgrid(range(imx),range(imy))
+  return cv2.remap(a.astype(np.float32),
+      (x+r[:,:,0]).astype(np.float32),(y+r[:,:,1]).astype(np.float32),interp)
+
+
+def get_res(a,b,r):
+  #return b-remap(a,-r)
+  return a-remap(b,r)
+
+
+def resample2(im,order=1):
+  """
+  Stupid resampling to divide resolution by 2
+  """
+  assert isinstance(order,int) and order >= 0,"Order must be an int >=1"
+  if order == 0:
+    return im
+  if 1 in im.shape:
+    raise RuntimeError("Cannot resample image, dim < 1")
+  imf = im.astype(np.float)
+  y,x = im.shape
+  if y%2:
+    imf = imf[:-1,:]
+    print("Warning, dropped pixels on axis 0 to resample!")
+  if x%2:
+    imf = imf[:,:-1]
+    print("Warning, dropped pixels on axis 1 to resample!")
+  if order == 1:
+    return ((imf[::2,::2]+imf[1::2,::2]+imf[::2,1::2]+imf[1::2,1::2])/4
+            ).astype(im.dtype)
+  else:
+    return resample2(resample2(im,order-1))
+
+
+def show_color(f,quiver=(15,20),maxi=None):
+  h,w,_ = f.shape
+  ampl = (f[:,:,0]**2+f[:,:,1]**2)**.5
+  #ampl /= ampl.max()
+  if maxi is None:
+    ampl /= np.percentile(ampl,95)
+  else:
+    ampl /= maxi
+  angl = -np.arctan2(f[:,:,1],-f[:,:,0])
+  angl = (angl+np.pi)/(2*np.pi)
+  #r = np.stack([angl,np.ones((w,h),dtype=np.uint8),ampl],axis=2)
+  r = hsv_to_rgb(np.stack([angl,ampl,np.ones((h,w),dtype=np.uint8)],axis=2))
+  if hasattr(f,"mask"):
+    r = r*(1-np.stack((f.mask[:,:,0],)*3,axis=2))
+  #plt.imshow(angl)
+  #plt.imshow(r)
+  #plt.imshow(hsv_to_rgb(r))
+  plt.imshow(r)
+  if quiver:
+    stepy = h//quiver[0]
+    stepx = w//quiver[1]
+    plt.quiver(np.arange(0,w,stepx),np.arange(0,h,stepy),
+        f[::stepy,::stepx,0],-f[::stepy,::stepx,1])
+  plt.show()
