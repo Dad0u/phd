@@ -272,7 +272,7 @@ def resample2(im,order=1):
     return resample2(resample2(im,order-1))
 
 
-def show_color(f,quiver=(15,20),maxi=None):
+def show_color(f,quiver=(15,20),maxi=None,show=True):
   h,w,_ = f.shape
   ampl = (f[:,:,0]**2+f[:,:,1]**2)**.5
   #ampl /= ampl.max()
@@ -295,4 +295,5 @@ def show_color(f,quiver=(15,20),maxi=None):
     stepx = w//quiver[1]
     plt.quiver(np.arange(0,w,stepx),np.arange(0,h,stepy),
         f[::stepy,::stepx,0],-f[::stepy,::stepx,1])
-  plt.show()
+  if show:
+    plt.show()
