@@ -277,9 +277,9 @@ def show_color(f,quiver=(15,20),maxi=None,show=True):
   ampl = (f[:,:,0]**2+f[:,:,1]**2)**.5
   #ampl /= ampl.max()
   if maxi is None:
-    ampl /= np.percentile(ampl,95)
-  else:
-    ampl /= maxi
+    maxi = np.percentile(ampl,95)
+    print("max scale=",maxi)
+  ampl /= maxi
   angl = -np.arctan2(f[:,:,1],-f[:,:,0])
   angl = (angl+np.pi)/(2*np.pi)
   #r = np.stack([angl,np.ones((w,h),dtype=np.uint8),ampl],axis=2)
