@@ -35,9 +35,9 @@ def read_localstrain(paths):
       cut = np.inf
     cfile = next(path+p for p in CORRELFILES if os.path.exists(path+p))
     assert cfile, "No correl file available!"
-    h = tables.open_file(cfile,'r')
-    names = h.root.names
-    table = h.root.table
+    hdf = tables.open_file(cfile,'r')
+    names = hdf.root.names
+    table = hdf.root.table
     n,h,w,_ = table.shape
     try:
       mask = cv2.imread(path+MASKFILE,0).astype(float)/255
@@ -66,4 +66,5 @@ def read_localstrain(paths):
     data = pd.DataFrame(r,columns=['t(s)','localstrain'])
     data['t(s)'] = pd.to_timedelta(data['t(s)'],unit='s')
     frames.append(data.set_index('t(s)'))
+    hdf.close()
   return pd.concat(frames)
