@@ -28,6 +28,10 @@ class TimeGetter:
     return self.tlist[i]
 
 
+H = '[read_localthermo] '
+W = 'Warning: '
+
+
 @cachedfunc('localthermo.p')
 def read_localthermo(paths):
   """
@@ -36,6 +40,7 @@ def read_localthermo(paths):
   total_offset = 0
   frames = []
   for path in paths:
+    print(H+"Processing",path)
     try:
       cut = np.loadtxt(path+CUTFILE)
     except OSError:
@@ -47,15 +52,21 @@ def read_localthermo(paths):
     try:
       mask = cv2.imread(path+MASKFILE,0).astype(float)/255
     except AttributeError:
-      print("[read_localthermo] Warning, mask not found! Using default")
+      print(H+W+"Mask not found! Using default")
       margin = .2 # 20% margin on the default mask
       mask = np.zeros((h,w))
       mask[int(margin*h):int((1-margin)*h),int(margin*w):int((1-margin)*w)] = 1
     tg = TimeGetter(path)
+    if len(tg.tlist) != len(imglist):
+      print(H+W+"There are {} Ximea images and {} IR images 🤔".format(
+        len(tg.tlist),len(imglist)))
+      mini = min(len(tg.tlist),len(imglist))
+      tg.tlist = tg.tlist[:mini]
+      imglist = imglist[:mini]
     try:
       irthresh = int(np.loadtxt(IRTHRESH))
     except OSError:
-      print(f"[warning] {IRTHRESH} not found, using default value")
+      print(H+W+f"{IRTHRESH} not found, using default value")
       irthresh = 30
     r = []
     for imgname in imglist[1:]:
