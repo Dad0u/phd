@@ -6,7 +6,7 @@ from glob import glob
 import os
 
 LJFILE = 'lj.csv.gz'
-CORRELFILE = 'gpucorrel.csv'
+CORRELFILE = 'gpucorrel.csv.gz'
 CUTFILE = 'cut.txt'
 
 
@@ -41,11 +41,11 @@ def read_single(path):
   The result is NOT resampled (timestamps are those from both the csv files)
   """
   #print("[read_single] Called with",path)
-  lj = pd.read_csv(path+'lj.csv.gz', delimiter=',\\s+',engine='python')
+  lj = pd.read_csv(path+LJFILE, delimiter=',\\s+',engine='python')
   lj['t(s)'] = pd.to_timedelta(lj['t(s)'], unit='s')
   lj = lj.set_index('t(s)')
 
-  correl = pd.read_csv(path+'gpucorrel.csv.gz',
+  correl = pd.read_csv(path+CORRELFILE,
       delimiter=',\\s+',engine='python')
   correl['t(s)'] = pd.to_timedelta(correl['t(s)'], unit='s')
   correl = correl.set_index('t(s)')
@@ -92,8 +92,10 @@ def read_all(tests=tests):
 if __name__ == '__main__':
   print(f"Found {len(tests)} different tests")
   for i,t in enumerate(tests):
-    print(i+1,[i[0] for i in t])
-  frame = read_test(tests[0])
-  frame.plot(y='exx(%)')
-  frame.plot('exx(%)','F(N)')
+    print(i+1,t)
+    #frame = read_test(t)
+    #frame = read_test(t).interpolate()
+    frame = read_test(t).resample('10ms').mean().interpolate()
+    frame.plot(y='exx(%)')
+    frame.plot('exx(%)','F(N)')
   plt.show()
