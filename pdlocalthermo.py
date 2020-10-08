@@ -20,6 +20,7 @@ class TimeGetter:
   """
   def __init__(self,path):
     xilist = sorted(glob(path+XIPATH))
+    xilist = [i for i in xilist if 'ref' not in i] # Remove the reference image
     self.tlist = [float(s.split('_')[-1][:-5]) for s in xilist]
 
   def get(self,i):
