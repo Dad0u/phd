@@ -61,9 +61,7 @@ def read_localthermo(paths):
     if len(tg.tlist) != len(imglist):
       print(H+W+"There are {} Ximea images and {} IR images 🤔".format(
         len(tg.tlist),len(imglist)))
-      mini = min(len(tg.tlist),len(imglist))
-      tg.tlist = tg.tlist[:mini]
-      imglist = imglist[:mini]
+      imglist = imglist[:min(len(tg.tlist),len(imglist))]
     try:
       irthresh = int(np.loadtxt(IRTHRESH))
     except OSError:
