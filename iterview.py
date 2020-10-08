@@ -1,9 +1,12 @@
 #!/usr/bin/python3
 #coding: utf-8
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 import tkinter as tk
 from time import time,sleep
+
+matplotlib.use('TKAgg')
 
 
 class Displayer(object):
