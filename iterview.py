@@ -48,7 +48,7 @@ class Displayer(object):
       key = self.keys[v]
       self.show(key)
       self.last_v = v
-    self.root.after(50,self.show_interactive)
+    self.root.after(250,self.show_interactive)
 
   def show(self,key):
     if key not in self.cimg:
@@ -68,16 +68,16 @@ class Displayer(object):
     if not hasattr(self,'im'):
       self.im = plt.imshow(img,clim=(lo,hi),cmap=self.cmap)
       plt.draw()
-      plt.pause(.001)
+      plt.pause(.01)
     #plt.clf()
     #plt.imshow(img,clim=(lo,hi),cmap=self.cmap)
     self.im.set_data(img)
     self.im.set_clim(lo,hi)
     plt.draw()
-    plt.pause(.001)
+    plt.pause(.1)
 
   def interactive(self):
-    self.root.after(50,self.show_interactive)
+    self.root.after(250,self.show_interactive)
     self.root.mainloop()
     self.end()
 
