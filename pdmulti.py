@@ -49,4 +49,6 @@ for test,a,ls,lt in zip(tests,audios,lstrain,lthermo):
   tplot(data[data['localthermo'] > thresh['localthermo']]['exx(%)']+.02,
       marker='o',linestyle='',label='Thermo')
   plt.legend()
+  plt.xlabel('t (s)')
+  plt.ylabel('$\\epsilon_{xx}$ (%)')
 plt.show()
