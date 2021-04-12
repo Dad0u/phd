@@ -37,3 +37,9 @@ def read_audio(paths, freq='10ms', samplerate=SAMPLERATE):
     dwav.index.name = 't(s)'
     frames.append(dwav.resample(freq).mean())
   return pd.concat(frames)
+
+
+def count_evt(frame,thresh=100):
+  ser = frame['audio_lvl']
+  d = (ser>thresh).astype(int)
+  return (d.diff()==1).cumsum()
