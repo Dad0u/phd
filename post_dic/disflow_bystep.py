@@ -9,7 +9,8 @@ import os
 import datetime
 from time import time
 
-version = "1.0"
+# 1.1 Replaced Float64Atom to Float32Atom
+version = "1.1"
 
 try:
   dis_class = cv2.optflow.createOptFlow_DIS
@@ -150,7 +151,7 @@ def calc_flow(file_list,
   max_size = max([len(i.encode('utf-8')) for i in file_list])
   names = hrel.create_earray(hrel.root,'names',tables.StringAtom(max_size),
       (0,2),expectedrows=len(file_list))
-  res_arr = hrel.create_earray(hrel.root,'res',tables.Float64Atom(),(0,),
+  res_arr = hrel.create_earray(hrel.root,'res',tables.Float32Atom(),(0,),
       expectedrows=len(file_list)-1)
 
   # If asked, create the file and array for the residual
