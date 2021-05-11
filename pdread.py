@@ -27,30 +27,33 @@ for p in paths:
     tests.append([p])
   else:
     tests[-1].append(p)
-  new = not os.path.exists(p+CUTFILE)
+  new = not os.path.exists(p + CUTFILE)
 # Make tests hashable (for cachedfunc)
 tests = [tuple(l) for l in tests]
 
 
-def read_single(path):
+def read_single(path, offset=0):
   """
   Reads a single folder (ex: 01a_...)
 
   Returns a Pandas DataFrame inculding correl and lj.
   At every timestamp, the unknown values are interpolated.
   The result is NOT resampled (timestamps are those from both the csv files)
+
+  Offset allows to set the offset between the DIC and DAQ
   """
-  #print("[read_single] Called with",path)
-  lj = pd.read_csv(path+LJFILE, delimiter=',\\s+',engine='python')
+  # print("[read_single] Called with",path)
+  lj = pd.read_csv(path + LJFILE, delimiter=',\\s+', engine='python')
   lj['t(s)'] = pd.to_timedelta(lj['t(s)'], unit='s')
   lj = lj.set_index('t(s)')
 
-  correl = pd.read_csv(path+CORRELFILE,
-      delimiter=',\\s+',engine='python')
-  correl['t(s)'] = pd.to_timedelta(correl['t(s)'], unit='s')
+  OFFSET = .5
+  correl = pd.read_csv(path + CORRELFILE,
+    delimiter=',\\s+', engine='python')
+  correl['t(s)'] = pd.to_timedelta(correl['t(s)'] - OFFSET, unit='s')
   correl = correl.set_index('t(s)')
 
-  return pd.concat([lj,correl],axis=1)
+  return pd.concat([lj, correl], axis=1)
 
 
 def read_test(paths):
@@ -63,21 +66,21 @@ def read_test(paths):
   Takes the folders and the timestamps where each portion of the test ends
   (except for the last one)
   """
-  #print("[read] Called with",paths)
-  # Read all the tests
+  # print("[read] Called with",paths)
+  #  Read all the tests
   frames = [read_single(path) for path in paths]
   # Cut them at the proper length
   cuts = []
   for p in paths:
     try:
-      cuts.append(float(np.loadtxt(p+CUTFILE)))
+      cuts.append(float(np.loadtxt(p + CUTFILE)))
     except OSError:
       cuts.append(None)
-  frames = [frame[frame.index<pd.Timedelta(cut,'s')] if cut else frame
-      for frame,cut in zip(frames,cuts)]
+  frames = [frame[frame.index < pd.Timedelta(cut, 's')] if cut else frame
+      for frame, cut in zip(frames, cuts)]
   # Offset the timestamps accordingly
-  for frame,cut in zip(frames[1:],np.cumsum(cuts[:-1])):
-    frame.index += pd.Timedelta(cut,'s')
+  for frame, cut in zip(frames[1:], np.cumsum(cuts[:-1])):
+    frame.index += pd.Timedelta(cut, 's')
   # Concatenate and resample
   return pd.concat(frames)
 
@@ -91,11 +94,11 @@ def read_all(tests=tests):
 
 if __name__ == '__main__':
   print(f"Found {len(tests)} different tests")
-  for i,t in enumerate(tests):
-    print(i+1,t)
-    #frame = read_test(t)
-    #frame = read_test(t).interpolate()
+  for i, t in enumerate(tests):
+    print(i + 1, t)
+    # frame = read_test(t)
+    # frame = read_test(t).interpolate()
     frame = read_test(t).resample('10ms').mean().interpolate()
     frame.plot(y='exx(%)')
-    frame.plot('exx(%)','F(N)')
+    frame.plot('exx(%)', 'F(N)')
   plt.show()
