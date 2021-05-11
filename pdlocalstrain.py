@@ -6,7 +6,8 @@ import cv2
 from mystuff.cachedfunc import cachedfunc
 
 CORRELFILES = ['post/disflow-face/optflow_rel.hdf',
-    'post/disflow-face/optflow_rel_10.hdf']
+    'post/disflow-face/optflow_rel_10.hdf',
+    'post/disflow-face/disflow_rel.hdf']
 
 CUTFILE = 'cut.txt'
 MASKFILE = 'mask.tif'
@@ -33,6 +34,7 @@ def read_localstrain(paths):
       cut = np.loadtxt(path+CUTFILE)
     except OSError:
       cut = np.inf
+    print("Searching in",CORRELFILES)
     cfile = next(path+p for p in CORRELFILES if os.path.exists(path+p))
     assert cfile, "No correl file available!"
     hdf = tables.open_file(cfile,'r')
