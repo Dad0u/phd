@@ -36,23 +36,28 @@ def tplot(data, **kwargs):
   plt.plot(t, data, **kwargs)
 
 
+datas = []
 for test, a, ls, lt in zip(tests, audios, lstrain, lthermo):
-  plt.figure()
   fsmooth = test['F(N)'].resample('20ms').mean()
   fdmg = (fsmooth.rolling(10).mean().diff() - fsmooth.diff()).abs()
   data = pd.concat([test, a, ls, lt, fdmg.to_frame(name='fdmg')]).sort_index()
-  tplot(data['exx(%)'].dropna(), label='$\\epsilon_{xx}$(%)')
   data['exx(%)'].interpolate('time', inplace=True)
+  datas.append(data)
 
-  tplot(data[data['fdmg'] > thresh['fdmg']]['exx(%)'] - .01,
-        marker='o', linestyle='', label='Fdmg')
-  tplot(data[data['audio_lvl'] > thresh['audio']]['exx(%)'],
-        marker='o', linestyle='', label='Audio')
-  tplot(data[data['localstrain'] > thresh['localstrain']]['exx(%)'] + .01,
-        marker='o', linestyle='', label='Correl')
-  tplot(data[data['localthermo'] > thresh['localthermo']]['exx(%)'] + .02,
-        marker='o', linestyle='', label='Thermo')
-  plt.legend()
-  plt.xlabel('t (s)')
-  plt.ylabel('$\\epsilon_{xx}$ (%)')
-plt.show()
+
+if __name__ == '__main__':
+  for data in datas:
+    plt.figure()
+    tplot(data['exx(%)'].dropna(), label='$\\epsilon_{xx}$(%)')
+    tplot(data[data['fdmg'] > thresh['fdmg']]['exx(%)'] - .01,
+          marker='o', linestyle='', label='Fdmg')
+    tplot(data[data['audio_lvl'] > thresh['audio']]['exx(%)'],
+          marker='o', linestyle='', label='Audio')
+    tplot(data[data['localstrain'] > thresh['localstrain']]['exx(%)'] + .01,
+          marker='o', linestyle='', label='Correl')
+    tplot(data[data['localthermo'] > thresh['localthermo']]['exx(%)'] + .02,
+          marker='o', linestyle='', label='Thermo')
+    plt.legend()
+    plt.xlabel('t (s)')
+    plt.ylabel('$\\epsilon_{xx}$ (%)')
+  plt.show()
