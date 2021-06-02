@@ -92,7 +92,7 @@ def calc_flow(original_image,
               out_file='optflow.hdf',
               out_res='optflow_res.hdf',
               complevel=0,
-              complevel_res=1,
+              complevel_res=0,
               use_last=True,
               open_func=lambda s: cv2.imread(s, 0),
               # Preset medium
@@ -125,7 +125,7 @@ def calc_flow(original_image,
   height, width = o_img.shape
   output_size = 8 * height * width * len(file_list) / 2**20
   if out_res:
-    output_size *= 2
+    output_size *= 1.5  # Residual has the same type but half the values
   print("Estimated output size: {:.2f} MB".format(output_size))
 
   # Opening the main output file

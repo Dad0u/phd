@@ -99,7 +99,7 @@ def calc_flow(file_list,
               out_total='optflow_total.hdf',  # Cumulated flow
               out_res='optflow_res.hdf',  # Residual
               complevel=0,
-              complevel_res=1,
+              complevel_res=0,
               complevel_tot=0,
               use_last=True,
               open_func=lambda s: cv2.imread(s, 0),
@@ -134,8 +134,7 @@ def calc_flow(file_list,
   size = 8 * height * width * len(file_list) / 2**20
   output_size = 2 * size if out_total else size
   if out_res:
-    output_size += size
-    # Rough pessimistic estimate with zlib(1) compression
+    output_size += size / 2  # Same type as the fields, but only 1 component
   print("Estimated output size: {:.2f} MB".format(output_size))
 
   # Opening the main output file
