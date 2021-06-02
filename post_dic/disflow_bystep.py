@@ -9,8 +9,8 @@ import os
 import datetime
 from time import time
 
-# 1.1 Replaced Float64Atom to Float32Atom
-version = "1.1"
+# 1.2 Switch residual and total type from Int16 to Float32
+version = "1.2"
 
 try:
   dis_class = cv2.optflow.createOptFlow_DIS
@@ -131,10 +131,10 @@ def calc_flow(file_list,
   infos_s = str(infos).encode('utf-8')
   o_img = open_func(file_list[0])
   height, width = o_img.shape
-  size = 8. * height * width * len(file_list) / 2**20
+  size = 8 * height * width * len(file_list) / 2**20
   output_size = 2 * size if out_total else size
   if out_res:
-    output_size += size / 20
+    output_size += size
     # Rough pessimistic estimate with zlib(1) compression
   print("Estimated output size: {:.2f} MB".format(output_size))
 
@@ -162,7 +162,7 @@ def calc_flow(file_list,
     hres = tables.open_file(unique_name(out_res), 'w')
     filt_r = tables.Filters(complevel=complevel_res) if complevel_res\
         else None
-    arr_r = hres.create_earray(hres.root, 'table', tables.Int16Atom(),
+    arr_r = hres.create_earray(hres.root, 'table', tables.Float32(),
                                (0, height, width), expectedrows=len(file_list),
                                filters=filt_r)
     names_r = hres.create_earray(hres.root, 'names',
@@ -174,7 +174,7 @@ def calc_flow(file_list,
     htot = tables.open_file(unique_name(out_total), 'w')
     filt_t = tables.Filters(complevel=complevel_tot) if complevel_res\
         else None
-    arr_t = htot.create_earray(htot.root, 'table', tables.Int16Atom(),
+    arr_t = htot.create_earray(htot.root, 'table', tables.Float32(),
                                (0, height, width, 2),
                                expectedrows=len(file_list),
                                filters=filt_t)

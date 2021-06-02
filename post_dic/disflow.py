@@ -9,8 +9,8 @@ import os
 import datetime
 from time import time
 
-# 1.1 Replaced Float64Atom to Float32Atom
-version = "1.1"
+# 1.2 Switch residual type from Int16 to Float32
+version = "1.2"
 
 
 try:
@@ -123,9 +123,9 @@ def calc_flow(original_image,
   infos_s = str(infos).encode('utf-8')
   o_img = open_func(original_image)
   height, width = o_img.shape
-  output_size = 8. * height * width * len(file_list) / 2**20
+  output_size = 8 * height * width * len(file_list) / 2**20
   if out_res:
-    output_size *= 1.05  # Rough pessimistic estimate with zlib(1) compression
+    output_size *= 2
   print("Estimated output size: {:.2f} MB".format(output_size))
 
   # Opening the main output file
@@ -154,7 +154,7 @@ def calc_flow(original_image,
     h_res = tables.open_file(unique_name(out_res), 'w')
     filt_r = tables.Filters(complevel=complevel_res) if complevel_res\
         else None
-    arr_r = h.create_earray(h_res.root, 'table', tables.Int16Atom(),
+    arr_r = h.create_earray(h_res.root, 'table', tables.Float32Atom(),
                             (0, height, width), expectedrows=len(file_list),
                             filters=filt_r)
     names_r = h.create_earray(h_res.root, 'names', tables.StringAtom(max_size),
