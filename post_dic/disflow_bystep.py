@@ -106,12 +106,12 @@ def calc_flow(file_list,
               # Preset medium
               finest_scale=0,
               gd_iterations=25,
-              patch_size=8,
-              patch_stride=3,
+              patch_size=4,
+              patch_stride=1,
               alpha=20,
               delta=5,
-              gamma=10,
-              iterations=5):
+              gamma=1,
+              iterations=20):
 
   infos = dict()
   infos['start_time'] = str(datetime.datetime.now())
