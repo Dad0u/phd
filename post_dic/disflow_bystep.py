@@ -7,10 +7,54 @@ import numpy as np
 import tables
 import os
 import datetime
-from time import time
+from time import time, sleep
+from multiprocessing import Process, Queue
 
 # 1.2 Switch residual and total type from Int16 to Float32
-version = "1.2"
+# 1.3 Images now opening asynchronously
+version = "1.3"
+
+
+class Async_iter(Process):
+  """
+  Can be used to iterate over a list of objects and apply
+  asynchronously a function (like an async map)
+
+  For example to load images to be processed in an other process
+
+  namelist: List of keys
+
+  load: function to call on each key
+
+  length: The number of element to load in advance
+
+  sleep_delay: How long will the process sleep if there no elements are needed
+  """
+  def __init__(self, namelist, load, length=3, sleep_delay=.1):
+    super().__init__()
+    self.namelist = namelist
+    self.load = load
+    self.q = Queue()
+    self.length = length
+    self.sleep_delay = sleep_delay
+
+  def __iter__(self):
+    self.start()
+    return self
+
+  def run(self):
+    for name in self.namelist:
+      while self.q.qsize() >= self.length:
+        sleep(self.sleep_delay)
+      self.q.put(self.load(name))
+
+  def __next__(self):
+    while self.q.qsize() == 0 and self.is_alive():
+      sleep(self.sleep_delay)
+    if self.q.qsize() > 0:
+      return self.q.get()
+    raise StopIteration
+
 
 try:
   dis_class = cv2.optflow.createOptFlow_DIS
@@ -196,15 +240,20 @@ def calc_flow(file_list,
   t0 = t2 = time()
   total = np.zeros((height, width, 2), dtype=np.float32)
   # Main loop (can catch kb interrupt)
+  fb = file_list[0]
+  imb = open_func(fb)
+  ai = Async_iter(file_list[1:], open_func)
   try:
-    for i, (fa, fb) in enumerate(zip(file_list[:-1], file_list[1:])):
+    for i, (f, img) in enumerate(zip(file_list[1:], ai)):
+      fa = fb
+      ima = imb
+      fb = f
+      imb = img
       print("Image {}/{}: {}".format(i + 1, len(file_list), fb))
       # Adding the names of the two images
       names.append([[fa.encode('utf-8'), fb.encode('utf-8')]])
       # Opening the second image
       print("Computing optflow...")
-      ima = open_func(fa)
-      imb = open_func(fb)
       # Should we initialize the field ?
       r = dis.calc(ima, imb, r if use_last else None)
       # Adding the result to the table
@@ -231,6 +280,7 @@ def calc_flow(file_list,
           format_time((t2 - t0) / (i + 1) * (len(file_list) - i - 1))))
   except KeyboardInterrupt:
     print("Interrupted !")  # Support de la reprise ?
+    ai.terminate()
 
   print("Correlation finished !")
   hrel.create_array(hrel.root, 'elapsed', [time() - t0])
@@ -248,8 +298,8 @@ def calc_flow(file_list,
 
 
 if __name__ == '__main__':
-  path = "/mnt/timeshift/backup/Essais/TU-carac/20-01-28-TU-monotone/\
-03-45deg/data/01-epr45-4_Fri_Jan_31_17-21-38/imagesXiC-tranche/*.tiff"
+  path = "/home/vic/Thèse/Essais/TU-carac/21-04-TU-cycles/01-00/data/Wed_Apr_21_15-50-51/imagesXiD-face/*.tiff"
   img_list = sorted(glob(path))
 
-  calc_flow(img_list[::10], alpha=10, delta=1, gamma=0, iterations=20)
+  calc_flow(img_list[::50], alpha=10, delta=1, gamma=0, iterations=2,
+            finest_scale=2, out_res=None)
