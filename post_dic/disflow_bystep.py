@@ -161,7 +161,7 @@ def calc_flow(file_list,
     hres = tables.open_file(unique_name(out_res), 'w')
     filt_r = tables.Filters(complevel=complevel_res) if complevel_res\
         else None
-    arr_r = hres.create_earray(hres.root, 'table', tables.Float32(),
+    arr_r = hres.create_earray(hres.root, 'table', tables.Float32Atom(),
                                (0, height, width), expectedrows=len(file_list),
                                filters=filt_r)
     names_r = hres.create_earray(hres.root, 'names',
@@ -173,7 +173,7 @@ def calc_flow(file_list,
     htot = tables.open_file(unique_name(out_total), 'w')
     filt_t = tables.Filters(complevel=complevel_tot) if complevel_res\
         else None
-    arr_t = htot.create_earray(htot.root, 'table', tables.Float32(),
+    arr_t = htot.create_earray(htot.root, 'table', tables.Float32Atom(),
                                (0, height, width, 2),
                                expectedrows=len(file_list),
                                filters=filt_t)
