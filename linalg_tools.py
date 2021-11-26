@@ -72,6 +72,23 @@ class Base:
     """
     return self.get_vec(self.proj(vec))
 
+  def add_vec(self, vec, auto_proj=True):
+    """
+    Add a new vector to the base
+
+    If auto_proj is True (default), only the orthogonal component
+    of the vector is added
+    Returns False and aborts if the resulting vector has a norm of 0
+    Returns True otherwise
+    """
+    if auto_proj:
+      vec -= self.proj_vec(vec)
+    n2 = self.s(vec, vec)
+    if n2 == 0:
+      return False
+    self.n2.append(n2)
+    self.vecs.append(vec)
+
 
 def orthonormalize(vecs, scal=default_scal_prod):
   """
